@@ -1,13 +1,13 @@
-const CACHE = 'rakhshak-v10';
+const CACHE = 'rakhshak-v11';
 const SHELL = [
   './', './index.html', './dashboard.html', './disaster-map.html', './village-risk.html',
   './sos-rescue.html', './teams-vehicles.html', './offline-communication.html',
   './reports-history.html', './public-alerts.html', './manifest.webmanifest',
-  './styles.css?v=10', './app.js?v=10', './shared/shell.js?v=10',
-  './assets/flood-community.png', './pages/home.js?v=10', './pages/dashboard.js?v=10',
-  './pages/disaster-map.js?v=10', './pages/village-risk.js?v=10', './pages/sos-rescue.js?v=10',
-  './pages/teams-vehicles.js?v=10', './pages/offline-communication.js?v=10',
-  './pages/reports-history.js?v=10', './pages/public-alerts.js?v=10'
+  './styles.css?v=11', './app.js?v=11', './shared/i18n.js?v=11', './shared/shell.js?v=11',
+  './assets/flood-community.png', './pages/home.js?v=11', './pages/dashboard.js?v=11',
+  './pages/disaster-map.js?v=11', './pages/village-risk.js?v=11', './pages/sos-rescue.js?v=11',
+  './pages/teams-vehicles.js?v=11', './pages/offline-communication.js?v=11',
+  './pages/reports-history.js?v=11', './pages/public-alerts.js?v=11'
 ];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));

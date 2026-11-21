@@ -41,6 +41,7 @@ Render needs Node.js 22.13 or newer for its built-in SQLite support. If the serv
 - Shared incident records for villages, SOS cases, teams, messages, public alerts, road conditions and the event log.
 - A citizen SOS form with a transparent demo priority score and responder-confirmed completion.
 - A red SOS button that pops into view after scrolling down the homepage.
+- An English / Hindi language switch on the homepage and command pages; the choice is remembered on this device.
 - A low-confidence flood-risk screening outlook for 6, 24 and 72 hours, with model source, data freshness and uncertainty labels.
 - A stylized interactive map with hazard layers, marker inspection, a before/after control and a road-condition toggle.
 - Simulated store-carry-forward messaging, relay hops, network loss/restore controls, and acknowledgement-based delivery.
@@ -70,5 +71,7 @@ Each page has a separate HTML entry file and a matching layout file under `pages
 - **Public Alerts:** `public-alerts.html` + `pages/public-alerts.js`
 
 `app.js` contains shared incident data and interactions. `shared/shell.js` contains the common sidebar, top bar, and footer. `styles.css` holds shared and page-specific styles. The supplied homepage photo is in `assets/flood-community.png`.
+
+`shared/i18n.js` contains the English-to-Hindi interface phrases and the language switch behavior. Add or edit translations there.
 
 `manifest.webmanifest` and `sw.js` provide the optional installable/offline shell when served from localhost or HTTPS.

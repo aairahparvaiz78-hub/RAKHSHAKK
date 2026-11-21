@@ -186,6 +186,7 @@
       pageMarkup='<section class="card empty-state render-error"><h2>This page did not load</h2><p>Refresh the page. If it remains blank, check that its page file is available.</p></section>';
     }
     content.innerHTML=pageMarkup;
+    window.RakhshakI18n?.apply(document.querySelector('.app-shell'));
     $('#content').focus({preventScroll:true});
     bindContent();
   }
