@@ -2,6 +2,7 @@
 
 // Local API for Rakhshak. SQLite and the HTTP server use Node built-ins;
 // optional Supabase credentials are read only by this server.
+
 const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -38,7 +39,7 @@ class SQLiteStore {
     this.db.exec("PRAGMA journal_mode=WAL");
     this.db.exec(
       "CREATE TABLE IF NOT EXISTS app_state (state_key TEXT PRIMARY KEY, payload TEXT NOT NULL, updated_at TEXT NOT NULL);" +
-      "CREATE TABLE IF NOT EXISTS observations (id TEXT PRIMARY KEY, village_id TEXT NOT NULL, village_name TEXT NOT NULL, observed_at TEXT NOT NULL, rainfall_6h_mm REAL NOT NULL, rainfall_24h_mm REAL NOT NULL, river_level_cm REAL NOT NULL, river_rise_cm_hr REAL NOT NULL, soil_saturation_pct REAL NOT NULL, source TEXT NOT NULL, is_simulated INTEGER NOT NULL DEFAULT 0);" +
+      "CREATE TABLE IF NOT EXISTS observations (id TEXT PRIMARY PRIMARY KEY, village_id TEXT NOT NULL, village_name TEXT NOT NULL, observed_at TEXT NOT NULL, rainfall_6h_mm REAL NOT NULL, rainfall_24h_mm REAL NOT NULL, river_level_cm REAL NOT NULL, river_rise_cm_hr REAL NOT NULL, soil_saturation_pct REAL NOT NULL, source TEXT NOT NULL, is_simulated INTEGER NOT NULL DEFAULT 0);" +
       "CREATE INDEX IF NOT EXISTS observations_village_time ON observations(village_id, observed_at DESC);" +
       "CREATE TABLE IF NOT EXISTS forecasts (id TEXT PRIMARY KEY, village_id TEXT NOT NULL, village_name TEXT NOT NULL, generated_at TEXT NOT NULL, horizons TEXT NOT NULL, confidence TEXT NOT NULL, source TEXT NOT NULL, is_simulated INTEGER NOT NULL, model_version TEXT NOT NULL);"
     );
@@ -95,22 +96,29 @@ class SupabaseStore {
 
   async request(resource, method, payload, prefer) {
     const headers = { apikey: this.secretKey, Accept: "application/json" };
+
     // Current sb_secret keys use apikey only; legacy service-role JWTs also
     // require the bearer header.
     if (!this.secretKey.startsWith("sb_secret_")) {
       headers.Authorization = "Bearer " + this.secretKey;
     }
+
     const options = { method: method || "GET", headers };
+
     if (payload !== undefined) {
       headers["Content-Type"] = "application/json";
       options.body = JSON.stringify(payload);
     }
+
     if (prefer) headers.Prefer = prefer;
+
     const response = await fetch(this.baseUrl + "/rest/v1/" + resource, options);
     const text = await response.text();
+
     if (!response.ok) {
       throw new Error("Supabase returned HTTP " + response.status + ": " + text.slice(0, 500));
     }
+
     return text ? JSON.parse(text) : null;
   }
 
@@ -122,7 +130,10 @@ class SupabaseStore {
     const rows = await this.request(
       "rakhshak_app_state?state_key=eq.active&select=payload,updated_at&limit=1"
     );
-    return rows && rows.length ? { state: rows[0].payload, updatedAt: rows[0].updated_at } : null;
+
+    return rows && rows.length
+      ? { state: rows[0].payload, updatedAt: rows[0].updated_at }
+      : null;
   }
 
   async saveState(state) {
@@ -161,11 +172,17 @@ class SupabaseStore {
 
 function makeStore() {
   const url = (process.env.SUPABASE_URL || "").trim();
-  const secret = (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "").trim();
+  const secret = (
+    process.env.SUPABASE_SECRET_KEY ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    ""
+  ).trim();
+
   return url && secret ? new SupabaseStore(url, secret) : new SQLiteStore();
 }
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
 function riskCategory(score) {
   if (score >= 85) return "Severe";
   if (score >= 65) return "High";
@@ -175,6 +192,7 @@ function riskCategory(score) {
 
 function demoObservation(village) {
   const risk = Number(village.risk ?? 30);
+
   return {
     id: "demo-" + (village.id || "village"),
     village_id: String(village.id || ""),
@@ -200,27 +218,59 @@ function computeForecast(village, observation, generatedAt) {
   const rain24 = observationValue(observation, "rainfall_24h_mm", "rainfall24hMm");
   const riverRise = observationValue(observation, "river_rise_cm_hr", "riverRiseCmHr");
   const soil = observationValue(observation, "soil_saturation_pct", "soilSaturationPct");
+
   const isolation = String(village.access || "").toLowerCase().includes("isolation") ? 8 : 0;
   const rain6Signal = Math.min(25, rain6 * 0.48);
   const rain24Signal = Math.min(24, rain24 * 0.18);
   const riverSignal = Math.min(27, Math.max(0, riverRise) * 5.5);
   const soilSignal = Math.min(10, soil * 0.1);
   const baseline = base * 0.32;
-  const weights = { "6h": [1, 0.38, 0.85], "24h": [0.72, 1, 1.05], "72h": [0.4, 0.85, 1.18] };
+
+  const weights = {
+    "6h": [1, 0.38, 0.85],
+    "24h": [0.72, 1, 1.05],
+    "72h": [0.4, 0.85, 1.18]
+  };
+
   const horizons = {};
+
   for (const [label, weight] of Object.entries(weights)) {
     const score = Math.round(clamp(
-      baseline + rain6Signal * weight[0] + rain24Signal * weight[1] +
-      riverSignal * weight[2] + soilSignal + isolation, 0, 100
+      baseline +
+      rain6Signal * weight[0] +
+      rain24Signal * weight[1] +
+      riverSignal * weight[2] +
+      soilSignal +
+      isolation,
+      0,
+      100
     ));
-    horizons[label] = { riskIndex: score, category: riskCategory(score) };
+
+    horizons[label] = {
+      riskIndex: score,
+      category: riskCategory(score)
+    };
   }
+
   const simulated = Boolean(observation.is_simulated ?? observation.isSimulated);
   const drivers = ["Village baseline risk: " + Math.round(base) + "/100"];
-  if (rain6 > 0 || rain24 > 0) drivers.push("Rainfall input: " + rain6 + " mm / 6h, " + rain24 + " mm / 24h");
-  if (riverRise !== 0) drivers.push("River trend input: " + riverRise + " cm/hour");
-  if (soil > 0) drivers.push("Soil saturation input: " + soil + "%");
-  if (isolation) drivers.push("Village access is marked at risk of isolation");
+
+  if (rain6 > 0 || rain24 > 0) {
+    drivers.push("Rainfall input: " + rain6 + " mm / 6h, " + rain24 + " mm / 24h");
+  }
+
+  if (riverRise !== 0) {
+    drivers.push("River trend input: " + riverRise + " cm/hour");
+  }
+
+  if (soil > 0) {
+    drivers.push("Soil saturation input: " + soil + "%");
+  }
+
+  if (isolation) {
+    drivers.push("Village access is marked at risk of isolation");
+  }
+
   return {
     id: "forecast-" + (village.id || "village"),
     villageId: String(village.id || ""),
@@ -240,32 +290,46 @@ function computeForecast(village, observation, generatedAt) {
 
 function sendJson(response, status, value) {
   const body = Buffer.from(JSON.stringify(value));
+
   response.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
     "Content-Length": body.length,
     "Cache-Control": "no-store"
   });
+
   response.end(body);
 }
 
 async function readJson(request) {
   const chunks = [];
   let size = 0;
+
   for await (const chunk of request) {
     size += chunk.length;
-    if (size > MAX_BODY_BYTES) throw new Error("Request body is too large.");
+
+    if (size > MAX_BODY_BYTES) {
+      throw new Error("Request body is too large.");
+    }
+
     chunks.push(chunk);
   }
-  if (!size) throw new Error("Request body is empty.");
+
+  if (!size) {
+    throw new Error("Request body is empty.");
+  }
+
   let body;
+
   try {
     body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
   } catch {
     throw new Error("Request body must contain valid JSON.");
   }
+
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     throw new Error("Request body must be a JSON object.");
   }
+
   return body;
 }
 
@@ -273,79 +337,156 @@ async function handleApi(request, response, store, url) {
   try {
     if (request.method === "GET" && url.pathname === "/api/health") {
       await store.ping();
-      return sendJson(response, 200, { connected: true, mode: store.mode, database: "ready" });
+      return sendJson(response, 200, {
+        connected: true,
+        mode: store.mode,
+        database: "ready"
+      });
     }
+
     if (request.method === "GET" && url.pathname === "/api/state") {
       return sendJson(response, 200, await store.getState() || { state: null });
     }
+
     if (request.method === "GET" && url.pathname === "/api/observations") {
-      return sendJson(response, 200, { observations: await store.listObservations() });
+      return sendJson(response, 200, {
+        observations: await store.listObservations()
+      });
     }
+
     if (request.method === "GET" && url.pathname === "/api/forecasts") {
       const snapshot = await store.getState();
+
       if (!snapshot || !snapshot.state || typeof snapshot.state !== "object") {
-        return sendJson(response, 409, { error: "Load the incident state before forecasting." });
+        return sendJson(response, 409, {
+          error: "Load the incident state before forecasting."
+        });
       }
+
       const villages = snapshot.state.villages || [];
-      if (!villages.length) return sendJson(response, 200, { forecasts: [], notice: "No villages are configured." });
+
+      if (!villages.length) {
+        return sendJson(response, 200, {
+          forecasts: [],
+          notice: "No villages are configured."
+        });
+      }
+
       const latest = new Map();
+
       for (const row of await store.listObservations()) {
         const id = String(row.village_id ?? row.villageId ?? "");
         if (!latest.has(id)) latest.set(id, row);
       }
+
       for (const village of villages) {
         const id = String(village.id || "");
+
         if (!latest.has(id)) {
           const sample = demoObservation(village);
           await store.addObservation(sample);
           latest.set(id, sample);
         }
       }
+
       const generatedAt = now();
-      const forecasts = villages.map((village) =>
-        computeForecast(village, latest.get(String(village.id || "")), generatedAt)
-      ).sort((a, b) => b.horizons["24h"].riskIndex - a.horizons["24h"].riskIndex);
-      await store.saveForecasts(forecasts.map((row) => ({
-        id: row.id,
-        village_id: row.villageId,
-        village_name: row.villageName,
-        generated_at: row.generatedAt,
-        horizons: row.horizons,
-        confidence: row.confidence,
-        source: row.source,
-        is_simulated: row.isSimulated,
-        model_version: row.modelVersion
-      })));
+
+      const forecasts = villages
+        .map((village) =>
+          computeForecast(
+            village,
+            latest.get(String(village.id || "")),
+            generatedAt
+          )
+        )
+        .sort(
+          (a, b) =>
+            b.horizons["24h"].riskIndex - a.horizons["24h"].riskIndex
+        );
+
+      await store.saveForecasts(
+        forecasts.map((row) => ({
+          id: row.id,
+          village_id: row.villageId,
+          village_name: row.villageName,
+          generated_at: row.generatedAt,
+          horizons: row.horizons,
+          confidence: row.confidence,
+          source: row.source,
+          is_simulated: row.isSimulated,
+          model_version: row.modelVersion
+        }))
+      );
+
       return sendJson(response, 200, {
         forecasts,
         notice: "Risk index is a prototype screening estimate, not a probability or official warning.",
         modelVersion: MODEL_VERSION
       });
     }
+
     if (request.method === "PUT" && url.pathname === "/api/state") {
       const payload = await readJson(request);
       const state = payload.state;
+
       if (!state || typeof state !== "object" || !Array.isArray(state.villages)) {
-        return sendJson(response, 400, { error: "A valid Rakhshak state with villages is required." });
+        return sendJson(response, 400, {
+          error: "A valid Rakhshak state with villages is required."
+        });
       }
+
       await store.saveState(state);
-      return sendJson(response, 200, { saved: true, mode: store.mode, updatedAt: now() });
+
+      return sendJson(response, 200, {
+        saved: true,
+        mode: store.mode,
+        updatedAt: now()
+      });
     }
+
     if (request.method === "POST" && url.pathname === "/api/observations") {
       const body = await readJson(request);
       const snapshot = await store.getState();
-      if (!snapshot) return sendJson(response, 409, { error: "Save the incident before adding readings." });
+
+      if (!snapshot) {
+        return sendJson(response, 409, {
+          error: "Save the incident before adding readings."
+        });
+      }
+
       const villageId = String(body.villageId || "").trim();
-      const village = (snapshot.state.villages || []).find((item) => String(item.id) === villageId);
-      if (!village) return sendJson(response, 400, { error: "Choose a village from this incident." });
+      const village = (snapshot.state.villages || []).find(
+        (item) => String(item.id) === villageId
+      );
+
+      if (!village) {
+        return sendJson(response, 400, {
+          error: "Choose a village from this incident."
+        });
+      }
+
       const number = (name, min, max) => {
         const value = Number(body[name]);
-        if (!Number.isFinite(value)) throw new Error(name + " must be a number.");
-        if (value < min || value > max) throw new Error(name + " must be between " + min + " and " + max + ".");
+
+        if (!Number.isFinite(value)) {
+          throw new Error(name + " must be a number.");
+        }
+
+        if (value < min || value > max) {
+          throw new Error(name + " must be between " + min + " and " + max + ".");
+        }
+
         return value;
       };
+
       const source = String(body.source || "Manual observation").trim().slice(0, 100);
-      if (!source) return sendJson(response, 400, { error: "Add the source of the observation." });
+
+      if (!source) {
+        return sendJson(response, 400, {
+          error: "Add the source of the observation."
+        });
+      }
+
       const observation = {
         id: "obs-" + randomUUID(),
         village_id: villageId,
@@ -359,10 +500,18 @@ async function handleApi(request, response, store, url) {
         source,
         is_simulated: Boolean(body.isSimulated)
       };
+
       await store.addObservation(observation);
-      return sendJson(response, 201, { saved: true, observation });
+
+      return sendJson(response, 201, {
+        saved: true,
+        observation
+      });
     }
-    return sendJson(response, 404, { error: "API route not found." });
+
+    return sendJson(response, 404, {
+      error: "API route not found."
+    });
   } catch (error) {
     return sendJson(response, request.method === "GET" ? 503 : 400, {
       error: error.message || "Backend request failed.",
@@ -390,54 +539,76 @@ async function serveStatic(request, response, url) {
     response.writeHead(405, { Allow: "GET, HEAD" });
     return response.end();
   }
+
   let pathname;
+
   try {
     pathname = decodeURIComponent(url.pathname);
   } catch {
     response.writeHead(400);
     return response.end("Bad request");
   }
-  if (pathname === "/backend" || pathname.startsWith("/backend/") ||
-      pathname.split("/").some((part) => part.startsWith("."))) {
+
+  if (
+    pathname === "/backend" ||
+    pathname.startsWith("/backend/") ||
+    pathname.split("/").some((part) => part.startsWith("."))
+  ) {
     response.writeHead(404);
     return response.end("Not found");
   }
+
   let file = path.resolve(ROOT, "." + pathname);
   const relative = path.relative(ROOT, file);
+
   if (relative.startsWith("..") || path.isAbsolute(relative)) {
     response.writeHead(403);
     return response.end("Forbidden");
   }
+
   try {
-    if (fs.statSync(file).isDirectory()) file = path.join(file, "index.html");
+    if (fs.statSync(file).isDirectory()) {
+      file = path.join(file, "index.html");
+    }
+
     const data = await fs.promises.readFile(file);
+
     response.writeHead(200, {
       "Content-Type": MIME[path.extname(file).toLowerCase()] || "application/octet-stream",
       "Content-Length": data.length,
       "Cache-Control": "no-cache"
     });
+
     response.end(request.method === "HEAD" ? undefined : data);
   } catch {
-    response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+    response.writeHead(404, {
+      "Content-Type": "text/plain; charset=utf-8"
+    });
     response.end("Not found");
   }
 }
 
 async function main() {
   loadEnv();
+
   const store = makeStore();
   const port = Number(process.env.PORT || 8000);
+
   const server = http.createServer(async (request, response) => {
     const url = new URL(request.url, "http://localhost");
+
     if (url.pathname.startsWith("/api/")) {
       await handleApi(request, response, store, url);
     } else {
       await serveStatic(request, response, url);
     }
   });
-  server.listen(port, "127.0.0.1", () => {
-    console.log("Rakhshak is running at http://localhost:" + port);
+
+  // Render requires the web server to bind to all network interfaces.
+  server.listen(port, "0.0.0.0", () => {
+    console.log("Rakhshak is running on port " + port);
     console.log("Database mode: " + store.mode);
+
     if (store.mode === "sqlite") {
       console.log("Local database: " + DB_FILE);
       console.log("Set SUPABASE_URL and SUPABASE_SECRET_KEY in backend/.env for Supabase.");
