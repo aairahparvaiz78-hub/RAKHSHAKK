@@ -9,14 +9,16 @@ window.RakhshakPages=window.RakhshakPages||{};window.RakhshakPages.dashboard=fun
       const score=Math.max(0,Math.min(100,Number(value.riskIndex)||0));
       return '<td><span class="forecast-score '+String(value.category||'monitor').toLowerCase()+'">'+score+'</span><small>'+esc(value.category||'Monitor')+'</small></td>';
     };
-    const forecastSource=forecastRows.some(row=>row.isSimulated)?'SIMULATED READINGS':'SCREENING OUTLOOK';
+    const hasExternalModel=forecastRows.some(row=>/Open-Meteo|GloFAS/.test(String(row.source||'')));
+    const forecastSource=forecastRows.length?(hasExternalModel?'GLOBAL MODEL OUTLOOK':'BASELINE / FIELD ONLY'):'MODEL FEED OFFLINE';
+    const modelAttribution=forecastRows.some(row=>String(row.source||'').includes('Open-Meteo'))?' · <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo data · CC BY 4.0</a>':'';
     const forecastPanel='<section class="forecast-panel card">'+
-      '<div class="forecast-panel-head"><div><div class="eyebrow">FLOOD RISK OUTLOOK</div><h2>What may need attention next</h2><p>Risk index by village using recorded rainfall, river trend, soil and access inputs.</p></div>'+
+      '<div class="forecast-panel-head"><div><div class="eyebrow">FLOOD RISK OUTLOOK</div><h2>What may need attention next</h2><p>Screening index from forecast rainfall, modelled river flow and village access context.</p></div>'+
       '<div class="forecast-actions"><span class="forecast-source">'+forecastSource+'</span><button class="button small" data-action="add-observation">＋ Add reading</button><button class="button ghost small" data-action="refresh-forecasts" aria-label="Refresh outlook">↻ Refresh</button></div></div>'+
       (forecastRows.length?'<div class="forecast-table-wrap"><table class="forecast-table"><thead><tr><th>Village</th><th>6 hours</th><th>24 hours</th><th>72 hours</th></tr></thead><tbody>'+
       forecastRows.map(forecast=>'<tr><th scope="row"><b>'+esc(forecast.villageName)+'</b><small>Baseline '+forecast.baselineRisk+'/100 · '+esc(forecast.confidence||'Low confidence')+'</small></th>'+scoreCell(forecast,'6h')+scoreCell(forecast,'24h')+scoreCell(forecast,'72h')+'</tr>').join('')+
-      '</tbody></table></div>':'<div class="forecast-empty">Forecast is loading. Start the Rakhshak backend to calculate the outlook.</div>')+
-      '<div class="forecast-disclaimer"><b>Prototype screening estimate</b> · not a probability, evacuation instruction or official warning. Source: '+esc(forecastRows[0]?.source||'awaiting readings')+'.</div></section>';
+      '</tbody></table></div>':'<div class="forecast-empty">Outlook unavailable. Connect the cloud database and reload to request model data.</div>')+
+      '<div class="forecast-disclaimer"><b>Low-confidence screening index</b> · not a probability, evacuation instruction or official warning. GloFAS uses an approximate 5 km river grid that may select a nearby river; verify with local gauges and official CWC/IMD alerts. Source: '+esc(forecastRows[0]?.source||'awaiting model data')+modelAttribution+'.</div></section>';
     return `${pageHead('RESPONSE OVERVIEW','Good morning, Ananya','Your response picture for the active incident. Updates from the field appear here as they arrive.',`<button class="button" data-page="reports">↗ &nbsp;Incident report</button>
       <button class="button primary" data-action="new-sos">＋ &nbsp;Log an SOS</button>`)}
       <section class="dashboard-banner">
