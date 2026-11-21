@@ -1,4 +1,4 @@
-# Rakhshak
+# Rakshak
 
 A responsive disaster-response prototype with a Node.js API, a SQLite database by default, optional Supabase storage and a warm espresso, cream, orange and rescue-red interface. It opens on a public homepage with a centered editorial headline, animated satellite orbit, four glass feature cards, your flood-community photo, and a prominent SOS action. Each destination has its own HTML route and page-layout JavaScript file. There is no build step or third-party JavaScript dependency.
 
