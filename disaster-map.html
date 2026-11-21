@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#120e0b">
+  <meta name="description" content="Rakhshak connects emergency SOS requests, rescue coordination and offline message relays.">
+  <title>Disaster Map — Rakhshak</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css?v=9">
+</head>
+<body data-page="map">
+  <div id="appMount"></div>
+  <div class="toast-region" id="toastRegion" role="status" aria-live="polite"></div>
+  <dialog id="sosDialog" class="modal-dialog"></dialog>
+  <dialog id="detailDialog" class="modal-dialog"></dialog>
+  <script src="shared/shell.js?v=9" defer></script>
+  <script src="pages/disaster-map.js?v=9" defer></script>
+  <script src="app.js?v=9" defer></script>
+</body>
+</html>

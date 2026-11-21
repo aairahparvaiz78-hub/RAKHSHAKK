@@ -1,0 +1,9 @@
+{
+  "name": "Rakhshak Response Network",
+  "short_name": "Rakhshak",
+  "description": "Emergency SOS, rescue coordination and offline response network",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#120e0b",
+  "theme_color": "#120e0b"
+}
