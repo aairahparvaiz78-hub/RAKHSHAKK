@@ -1,4 +1,4 @@
-# Rakhshak
+# Rakshak
 
 A responsive disaster-response prototype with a Node.js API, a SQLite database by default, optional Supabase storage and a warm espresso, cream, orange and rescue-red interface. It opens on a public homepage with a centered editorial headline, animated satellite orbit, four glass feature cards, your flood-community photo, and a prominent SOS action. Each destination has its own HTML route and page-layout JavaScript file. There is no build step or third-party JavaScript dependency.
 
@@ -8,7 +8,7 @@ A responsive disaster-response prototype with a Node.js API, a SQLite database b
 2. Open the extracted project folder in Cursor.
 3. Choose **Terminal → New Terminal** and run **node backend/server.js**.
 4. Open http://localhost:8000. The backend serves both the website and its API.
-5. By default, it creates a local SQLite database at backend/data/rakhshak.sqlite3. No packages need to be installed.
+5. By default, it creates a local SQLite database at backend/data/Rakshak.sqlite3. No packages need to be installed.
 
 ## Backend and flood outlook
 

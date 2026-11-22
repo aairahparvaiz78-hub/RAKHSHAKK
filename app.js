@@ -88,7 +88,7 @@
     } catch (error) {
       backendConnected = false;
       setDatabaseBadge('Browser save only', 'offline');
-      console.warn('Rakhshak could not save to its backend.', error);
+      console.warn('Rakshak could not save to its backend.', error);
       return false;
     }
   }
@@ -111,7 +111,7 @@
       if (showToast) toast('Flood risk outlook refreshed from the latest saved readings.');
       return true;
     } catch (error) {
-      if (showToast) toast(error.message || 'Start the Rakhshak backend to refresh forecasts.', true);
+      if (showToast) toast(error.message || 'Start the Rakshak backend to refresh forecasts.', true);
       return false;
     }
   }
@@ -146,7 +146,7 @@
     } catch (error) {
       backendConnected = false;
       setDatabaseBadge('Browser save only', 'offline');
-      console.info('Rakhshak is running without its API backend.', error);
+      console.info('Rakshak is running without its API backend.', error);
     }
   }
   const timestamp = value => new Intl.DateTimeFormat(undefined,{hour:'2-digit',minute:'2-digit'}).format(new Date(value));
@@ -176,13 +176,13 @@
     document.querySelector('.app-shell').classList.toggle('landing-mode',state.page==='home');
     const net=$('#networkToggle');net.classList.toggle('offline',!state.online);net.setAttribute('aria-pressed',String(!state.online));$('#networkToggleText').textContent=state.online?'Network online':'Network offline';$('#sideNetworkState').textContent=state.online?'ONLINE':'OFFLINE';$('#sideNetworkState').style.color=state.online?'#e7a25d':'#e79a87';
     $('#lastSync').textContent=ago(state.lastSync);
-    const renderPage=window.RakhshakPages?.[state.page];
+    const renderPage=window.RakshakPages?.[state.page];
     const content=$('#content');
     let pageMarkup;
     try {
       pageMarkup=renderPage?renderPage(pageContext):'<div class="card empty-state">This page module could not be loaded. Check the matching file in the pages folder.</div>';
     } catch(error) {
-      console.error('Rakhshak page could not render:',state.page,error);
+      console.error('Rakshak page could not render:',state.page,error);
       pageMarkup='<section class="card empty-state render-error"><h2>This page did not load</h2><p>Refresh the page. If it remains blank, check that its page file is available.</p></section>';
     }
     content.innerHTML=pageMarkup;
@@ -222,7 +222,7 @@
     const reports=$$('[data-report-filter]');reports.forEach(el=>el.addEventListener('change',()=>{state.filters[el.dataset.reportFilter]=el.value;save();render();}));
   }
   const pageRoutes={home:'index.html',dashboard:'dashboard.html',map:'disaster-map.html',villages:'village-risk.html',sos:'sos-rescue.html',teams:'teams-vehicles.html',offline:'offline-communication.html',reports:'reports-history.html',public:'public-alerts.html'};
-  function go(page,message=''){if(page===state.page){save();render();window.scrollTo({top:0,behavior:'smooth'});if(message)toast(message);return;}state.page=page;save();if(message){try{sessionStorage.setItem('rakhshakFlash',message);}catch{}}window.location.href=pageRoutes[page]||'index.html';}
+  function go(page,message=''){if(page===state.page){save();render();window.scrollTo({top:0,behavior:'smooth'});if(message)toast(message);return;}state.page=page;save();if(message){try{sessionStorage.setItem('RakshakFlash',message);}catch{}}window.location.href=pageRoutes[page]||'index.html';}
   function handleAction(action,id){switch(action){case'new-sos':openSosDialog();break;case'public-page':go('public');break;case'toggle-network':toggleNetwork();break;case'toggle-road':toggleRoad();break;case'assign-sos':openAssignDialog(id);break;case'assign-team':openTeamAssignDialog(id);break;case'team-update':openFieldDialog(id);break;case'field-update':openFieldDialog(null);break;case'relay-message':relayMessage(id);break;case'sync-messages':syncMessages();break;case'reset-layers':state.layers={flood:true,villages:true,sos:true,teams:true,shelters:true,fire:false,earthquake:false};save();render();toast('Map layers reset to incident defaults.');break;case'toggle-compare':document.querySelector('[data-compare-range]')?.focus();toast('Use the before/after slider beneath the map.');break;case'approve-alert':approveAlert(id);break;case'new-alert':openAlertDialog();break;case'edit-alert':openAlertDialog(id);break;case'print-report':window.print();break;case'export-report':downloadReport();break;case'download-villages':downloadVillages();break;case'add-observation':openObservationDialog();break;case'refresh-forecasts':refreshForecasts(true);break;}}
   function openObservationDialog(){
     const dlg=$('#detailDialog');
@@ -256,7 +256,7 @@
         render();
         toast('Reading saved to the database and flood outlook updated.');
       }catch{
-        toast('Start the Rakhshak backend before adding a reading.',true);
+        toast('Start the Rakshak backend before adding a reading.',true);
       }
     });
   }  function openSosDialog(){const dlg=$('#sosDialog');dlg.innerHTML=`<div class="dialog-head"><div><div class="eyebrow">CITIZEN SOS</div><h2>Request emergency help</h2><p>Your request is linked to the Kosi Basin incident.</p></div><button class="dialog-close" data-close aria-label="Close">×</button></div><form id="sosForm"><div class="form-grid"><div class="field"><label for="sosVillage">Village / location</label><select id="sosVillage" name="village" required>${state.villages.map(v=>`<option value="${v.id}">${esc(v.name)} · ${esc(v.access)}</option>`).join('')}</select></div><div class="field"><label for="sosNeed">Type of help</label><select id="sosNeed" name="need"><option>Evacuation</option><option>Medical help</option><option>Food & water</option><option>Rescue from water</option><option>Other urgent help</option></select></div><div class="field"><label for="sosPeople">People needing help</label><input id="sosPeople" name="people" type="number" min="1" max="99" value="1" required></div><div class="field"><label for="sosLocation">Location detail (optional)</label><input id="sosLocation" name="location" maxlength="80" placeholder="Landmark or last-known location"></div><label class="check-row"><input type="checkbox" name="medical"> Medical need</label><label class="check-row"><input type="checkbox" name="danger"> Immediate danger</label><div class="field full"><label for="sosNote">Short note (optional)</label><textarea id="sosNote" name="note" maxlength="180" placeholder="Tell responders what they should know"></textarea></div></div><div class="inline-note" style="margin-top:12px">Priority is suggested from need, people affected, village exposure and isolation. ${state.online?'Request will be sent through this simulated network.':'Request will be saved on this device and marked pending until synced.'}</div><div class="dialog-actions"><button type="button" class="button ghost" data-close>Cancel</button><button class="button primary" type="submit">Send SOS request</button></div></form>`;openDialog(dlg);$('#sosForm').addEventListener('submit',submitSos);}
@@ -276,12 +276,12 @@
   function openAlertDialog(id){const a=state.alerts.find(x=>x.id===id),dlg=$('#detailDialog');dlg.innerHTML=`<div class="dialog-head"><div><div class="eyebrow">OPERATOR ALERT DRAFT</div><h2>${a?'Edit public alert':'Draft a public alert'}</h2><p>Private citizen data is never included in public alerts.</p></div><button class="dialog-close" data-close aria-label="Close">×</button></div><form id="alertForm"><div class="form-grid"><div class="field full"><label for="alertTitle">Title</label><input id="alertTitle" name="title" maxlength="90" required value="${esc(a?.title||'')}" placeholder="Clear, actionable safety update"></div><div class="field full"><label for="alertBody">Public message</label><textarea id="alertBody" name="body" maxlength="320" required placeholder="Approved warning, shelter information or safe-route update">${esc(a?.body||'')}</textarea></div><div class="field"><label for="alertArea">Area</label><input id="alertArea" name="area" value="${esc(a?.area||'Kosi Basin')}" maxlength="80" required></div><div class="field"><label for="alertSource">Source</label><input id="alertSource" name="source" value="${esc(a?.source||'Incident command')}" maxlength="60" required></div></div><div class="dialog-actions"><button type="button" class="button ghost" data-close>Cancel</button><button class="button primary">Save draft for approval</button></div></form>`;openDialog(dlg);$('#alertForm').addEventListener('submit',e=>{e.preventDefault();const fd=new FormData(e.currentTarget);if(a){Object.assign(a,{title:fd.get('title'),body:fd.get('body'),area:fd.get('area'),source:fd.get('source'),updated:now()});}else{state.alerts.unshift({id:makeId('ALT'),title:fd.get('title'),body:fd.get('body'),area:fd.get('area'),source:fd.get('source'),status:'Draft',created:now(),updated:now()});}logEvent('Public alert draft saved','Awaiting operator approval before publication.','Ananya Sharma','alert');save();dlg.close();render();toast('Alert saved as a draft. Approve it to publish.');});}
   function openDialog(dlg){dlg.showModal();$$('[data-close]',dlg).forEach(b=>b.addEventListener('click',()=>dlg.close()));dlg.addEventListener('click',e=>{if(e.target===dlg)dlg.close();},{once:true});}
   function downloadFile(name,content,type='application/json'){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
-  function downloadReport(){const report={incident:state.incident,exportedAt:now(),notice:'All scenario data is simulated for demonstration. Population and route information are estimates.',villages:state.villages,sos:state.sos.map(s=>({...s,village:village(s.villageId)?.name,team:team(s.teamId)?.name||null})),teams:state.teams,messages:state.messages,alerts:state.alerts.map(({id,title,area,status,source,created,updated})=>({id,title,area,status,source,created,updated})),eventLog:state.events};downloadFile('rakhshak-incident-report.json',JSON.stringify(report,null,2));toast('Incident report exported as JSON.');}
-  function downloadVillages(){const rows=[['Village','District','Risk score','Exposure','Estimated population','Access status','Open SOS','Warning sent','Team contacted','Risk factors'],...state.villages.map(v=>[v.name,v.district,v.risk,v.exposure,v.pop,v.access,state.sos.filter(s=>s.villageId===v.id&&!['Assistance complete','Unable to reach'].includes(s.status)).length,v.warned?'Yes':'No',v.contacted?'Yes':'No',v.factors.join('; ')])];const csv=rows.map(row=>row.map(cell=>`"${String(cell).replaceAll('"','""')}"`).join(',')).join('\r\n');downloadFile('rakhshak-village-risk.csv',csv,'text/csv');toast('Village risk list exported as CSV.');}
+  function downloadReport(){const report={incident:state.incident,exportedAt:now(),notice:'All scenario data is simulated for demonstration. Population and route information are estimates.',villages:state.villages,sos:state.sos.map(s=>({...s,village:village(s.villageId)?.name,team:team(s.teamId)?.name||null})),teams:state.teams,messages:state.messages,alerts:state.alerts.map(({id,title,area,status,source,created,updated})=>({id,title,area,status,source,created,updated})),eventLog:state.events};downloadFile('Rakshak-incident-report.json',JSON.stringify(report,null,2));toast('Incident report exported as JSON.');}
+  function downloadVillages(){const rows=[['Village','District','Risk score','Exposure','Estimated population','Access status','Open SOS','Warning sent','Team contacted','Risk factors'],...state.villages.map(v=>[v.name,v.district,v.risk,v.exposure,v.pop,v.access,state.sos.filter(s=>s.villageId===v.id&&!['Assistance complete','Unable to reach'].includes(s.status)).length,v.warned?'Yes':'No',v.contacted?'Yes':'No',v.factors.join('; ')])];const csv=rows.map(row=>row.map(cell=>`"${String(cell).replaceAll('"','""')}"`).join(',')).join('\r\n');downloadFile('Rakshak-village-risk.csv',csv,'text/csv');toast('Village risk list exported as CSV.');}
   $('#networkToggle').addEventListener('click',toggleNetwork);$('#publicAlertBtn').addEventListener('click',()=>go('public'));$('#menuToggle').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));$('#mainNav').addEventListener('click',e=>{const btn=e.target.closest('[data-page]');if(btn)go(btn.dataset.page);});$('.brand').addEventListener('click',e=>{e.preventDefault();go('home');});
   window.addEventListener('scroll',()=>{const button=$('#floatingSOS');if(button)button.classList.toggle('show',window.scrollY>340);},{passive:true});
   render();
   connectDatabase();
-  try{const flash=sessionStorage.getItem('rakhshakFlash');if(flash){sessionStorage.removeItem('rakhshakFlash');toast(flash);}}catch{}
+  try{const flash=sessionStorage.getItem('RakshakFlash');if(flash){sessionStorage.removeItem('RakshakFlash');toast(flash);}}catch{}
   if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('./sw.js?v=9').catch(() => {});
 })();

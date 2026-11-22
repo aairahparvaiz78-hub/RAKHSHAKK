@@ -1,5 +1,5 @@
 // Edit this file to change the offline communication page layout.
-window.RakhshakPages=window.RakhshakPages||{};window.RakhshakPages.offline=function(ctx){const {state,esc,timestamp,ago,village,team,totalPeople,openSos,unresolved,pendingMessages,metric,statusClass,statusChip,eventRows,pageHead,mapSvg,getMapSelection,statuses,sosCard,messageChip,filteredReportEvents}=ctx;const msgRows=state.messages.map(m=>`<div class="message-row">
+window.RakshakPages=window.RakshakPages||{};window.RakshakPages.offline=function(ctx){const {state,esc,timestamp,ago,village,team,totalPeople,openSos,unresolved,pendingMessages,metric,statusClass,statusChip,eventRows,pageHead,mapSvg,getMapSelection,statuses,sosCard,messageChip,filteredReportEvents}=ctx;const msgRows=state.messages.map(m=>`<div class="message-row">
       <span class="message-priority">${m.priority==='Urgent'?'!':'⌁'}</span>
       <div class="message-copy">
       <b>${esc(m.title)}</b>

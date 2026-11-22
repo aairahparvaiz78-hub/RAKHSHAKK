@@ -1,5 +1,5 @@
 // Edit this file to change the dashboard page layout.
-window.RakhshakPages=window.RakhshakPages||{};window.RakhshakPages.dashboard=function(ctx){const {state,esc,timestamp,ago,village,team,totalPeople,openSos,unresolved,pendingMessages,metric,statusClass,statusChip,eventRows,pageHead,mapSvg,getMapSelection,statuses,sosCard,messageChip,filteredReportEvents}=ctx;
+window.RakshakPages=window.RakshakPages||{};window.RakshakPages.dashboard=function(ctx){const {state,esc,timestamp,ago,village,team,totalPeople,openSos,unresolved,pendingMessages,metric,statusClass,statusChip,eventRows,pageHead,mapSvg,getMapSelection,statuses,sosCard,messageChip,filteredReportEvents}=ctx;
     const urgent=unresolved().filter(s=>s.priority>=75).length,assigned=state.teams.filter(t=>t.status!=='Available').length;
     const top=state.villages.slice().sort((a,b)=>b.risk-a.risk).slice(0,3);
     const forecastRows=(state.forecasts||[]).slice().sort((a,b)=>(b.horizons?.['24h']?.riskIndex||0)-(a.horizons?.['24h']?.riskIndex||0)).slice(0,4);
@@ -15,7 +15,7 @@ window.RakhshakPages=window.RakhshakPages||{};window.RakhshakPages.dashboard=fun
       '<div class="forecast-actions"><span class="forecast-source">'+forecastSource+'</span><button class="button small" data-action="add-observation">＋ Add reading</button><button class="button ghost small" data-action="refresh-forecasts" aria-label="Refresh outlook">↻ Refresh</button></div></div>'+
       (forecastRows.length?'<div class="forecast-table-wrap"><table class="forecast-table"><thead><tr><th>Village</th><th>6 hours</th><th>24 hours</th><th>72 hours</th></tr></thead><tbody>'+
       forecastRows.map(forecast=>'<tr><th scope="row"><b>'+esc(forecast.villageName)+'</b><small>Baseline '+forecast.baselineRisk+'/100 · '+esc(forecast.confidence||'Low confidence')+'</small></th>'+scoreCell(forecast,'6h')+scoreCell(forecast,'24h')+scoreCell(forecast,'72h')+'</tr>').join('')+
-      '</tbody></table></div>':'<div class="forecast-empty">Forecast is loading. Start the Rakhshak backend to calculate the outlook.</div>')+
+      '</tbody></table></div>':'<div class="forecast-empty">Forecast is loading. Start the Rakshak backend to calculate the outlook.</div>')+
       '<div class="forecast-disclaimer"><b>Prototype screening estimate</b> · not a probability, evacuation instruction or official warning. Source: '+esc(forecastRows[0]?.source||'awaiting readings')+'.</div></section>';
     return `${pageHead('RESPONSE OVERVIEW','Good morning, Ananya','Your response picture for the active incident. Updates from the field appear here as they arrive.',`<button class="button" data-page="reports">↗ &nbsp;Incident report</button>
       <button class="button primary" data-action="new-sos">＋ &nbsp;Log an SOS</button>`)}

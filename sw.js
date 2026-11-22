@@ -1,4 +1,4 @@
-const CACHE = 'rakhshak-v9';
+const CACHE = 'Rakshak-v9';
 const SHELL = [
   './', './index.html', './dashboard.html', './disaster-map.html', './village-risk.html',
   './sos-rescue.html', './teams-vehicles.html', './offline-communication.html',

@@ -1,6 +1,6 @@
 "use strict";
 
-// Local API for Rakhshak. SQLite and the HTTP server use Node built-ins;
+// Local API for Rakshak. SQLite and the HTTP server use Node built-ins;
 // optional Supabase credentials are read only by this server.
 const http = require("node:http");
 const fs = require("node:fs");
@@ -9,7 +9,7 @@ const { randomUUID } = require("node:crypto");
 const { DatabaseSync } = require("node:sqlite");
 
 const ROOT = path.resolve(__dirname, "..");
-const DB_FILE = path.join(__dirname, "data", "rakhshak.sqlite3");
+const DB_FILE = path.join(__dirname, "data", "Rakshak.sqlite3");
 const MODEL_VERSION = "transparent-flood-screen-v1";
 const MAX_BODY_BYTES = 1_000_000;
 
@@ -115,19 +115,19 @@ class SupabaseStore {
   }
 
   async ping() {
-    await this.request("rakhshak_app_state?select=state_key&limit=1");
+    await this.request("Rakshak_app_state?select=state_key&limit=1");
   }
 
   async getState() {
     const rows = await this.request(
-      "rakhshak_app_state?state_key=eq.active&select=payload,updated_at&limit=1"
+      "Rakshak_app_state?state_key=eq.active&select=payload,updated_at&limit=1"
     );
     return rows && rows.length ? { state: rows[0].payload, updatedAt: rows[0].updated_at } : null;
   }
 
   async saveState(state) {
     await this.request(
-      "rakhshak_app_state?on_conflict=state_key",
+      "Rakshak_app_state?on_conflict=state_key",
       "POST",
       { state_key: "active", payload: state, updated_at: now() },
       "resolution=merge-duplicates,return=minimal"
@@ -136,13 +136,13 @@ class SupabaseStore {
 
   async listObservations() {
     return await this.request(
-      "rakhshak_observations?select=*&order=observed_at.desc&limit=500"
+      "Rakshak_observations?select=*&order=observed_at.desc&limit=500"
     ) || [];
   }
 
   async addObservation(row) {
     await this.request(
-      "rakhshak_observations?on_conflict=id",
+      "Rakshak_observations?on_conflict=id",
       "POST",
       row,
       "resolution=merge-duplicates,return=minimal"
@@ -151,7 +151,7 @@ class SupabaseStore {
 
   async saveForecasts(rows) {
     await this.request(
-      "rakhshak_forecasts?on_conflict=id",
+      "Rakshak_forecasts?on_conflict=id",
       "POST",
       rows,
       "resolution=merge-duplicates,return=minimal"
@@ -326,7 +326,7 @@ async function handleApi(request, response, store, url) {
       const payload = await readJson(request);
       const state = payload.state;
       if (!state || typeof state !== "object" || !Array.isArray(state.villages)) {
-        return sendJson(response, 400, { error: "A valid Rakhshak state with villages is required." });
+        return sendJson(response, 400, { error: "A valid Rakshak state with villages is required." });
       }
       await store.saveState(state);
       return sendJson(response, 200, { saved: true, mode: store.mode, updatedAt: now() });
@@ -436,7 +436,7 @@ async function main() {
     }
   });
   server.listen(port, "127.0.0.1", () => {
-    console.log("Rakhshak is running at http://localhost:" + port);
+    console.log("Rakshak is running at http://localhost:" + port);
     console.log("Database mode: " + store.mode);
     if (store.mode === "sqlite") {
       console.log("Local database: " + DB_FILE);
@@ -446,6 +446,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("Could not start the Rakhshak backend:", error.message);
+  console.error("Could not start the Rakshak backend:", error.message);
   process.exitCode = 1;
 });

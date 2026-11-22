@@ -1,6 +1,6 @@
-// Homepage layout. Edit this file to change the Rakhshak landing page.
-window.RakhshakPages = window.RakhshakPages || {};
-window.RakhshakPages.home = function (ctx) {
+// Homepage layout. Edit this file to change the Rakshak landing page.
+window.RakshakPages = window.RakshakPages || {};
+window.RakshakPages.home = function (ctx) {
   const { state, mapSvg, esc } = ctx;
   const openCount = state.sos.filter(item => !['Assistance complete', 'Unable to reach'].includes(item.status)).length;
   const recentCases = state.sos.slice(0, 2).map(item => `
@@ -19,9 +19,9 @@ window.RakhshakPages.home = function (ctx) {
   return `
   <div class="home-page inspiration-home">
     <header class="home-nav">
-      <button class="home-brand" data-page="home" aria-label="Rakhshak home">
+      <button class="home-brand" data-page="home" aria-label="Rakshak home">
         <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M7 25c0-9 6-16 16-17 0 8-4 15-12 18m5-2 11 9m-5-17 8 1m-20 6 1 9"/><circle cx="29" cy="13" r="3"/></svg></span>
-        <span><b>Rakhshak</b><small>RESILIENT RESPONSE NETWORK</small></span>
+        <span><b>Rakshak</b><small>RESILIENT RESPONSE NETWORK</small></span>
       </button>
       <nav class="home-nav-links" aria-label="Homepage links">
         <button data-page="public">Public alerts</button>
@@ -51,7 +51,7 @@ window.RakhshakPages.home = function (ctx) {
         </div>
         <div class="cover-copy">
           <div class="home-kicker"><span class="kicker-mark">✳</span> COMMUNITY RESPONSE · KOSI BASIN</div>
-          <h1>Rakhshak<br><em>Response Network</em></h1>
+          <h1>Rakshak<br><em>Response Network</em></h1>
           <p class="cover-subtitle">When roads and signals fail, every request still needs a way through.</p>
           <p class="cover-detail">One shared response picture for communities, rescue teams, and the people coordinating help.</p>
           <div class="cover-actions">
@@ -69,7 +69,7 @@ window.RakhshakPages.home = function (ctx) {
         <i></i><div><b>${state.messages.filter(message => message.ack).length}</b><span>MESSAGES ACKNOWLEDGED</span></div>
       </section>
 
-      <section class="portfolio-grid" aria-label="Rakhshak response features">
+      <section class="portfolio-grid" aria-label="Rakshak response features">
         <article class="portfolio-card map-tile">
           <div class="tile-browser"><span class="tile-brand"><i>◉</i> FIELD VIEW</span><span>Map &nbsp; Villages &nbsp; Teams</span><span class="tile-pill">LIVE REPLAY</span></div>
           <div class="tile-intro"><div><small>01 / SITUATION MAP</small><h2>See the ground.<br><em>Move with context.</em></h2><p>Flood extent, village risk, SOS markers and response locations in one picture.</p><button class="tile-link" data-page="map">Open disaster map ↗</button></div><div class="tile-map">${mapSvg('mini')}</div></div>
@@ -97,7 +97,7 @@ window.RakhshakPages.home = function (ctx) {
       </section>
 
       <section class="home-values"><div><span>✳</span><b>COMMUNITY FIRST</b><small>Clear SOS access</small></div><div><span>⌁</span><b>VEHICLES AS RELAYS</b><small>Carry information forward</small></div><div><span>◌</span><b>UNCERTAINTY VISIBLE</b><small>Source, freshness, confidence</small></div><div><span>↗</span><b>OUTCOMES CONFIRMED</b><small>Track delivery and assistance</small></div></section>
-      <footer class="home-footer"><span><i>✳</i> RAKHSHAK <b>·</b> DEMO ENVIRONMENT</span><span>Every estimate is labelled. Every delivery waits for acknowledgement.</span><button data-page="dashboard">Open incident dashboard ↗</button></footer>
+      <footer class="home-footer"><span><i>✳</i> Rakshak <b>·</b> DEMO ENVIRONMENT</span><span>Every estimate is labelled. Every delivery waits for acknowledgement.</span><button data-page="dashboard">Open incident dashboard ↗</button></footer>
       <button class="floating-sos" id="floatingSOS" data-action="new-sos"><span class="floating-sos-icon">!</span><span class="floating-sos-copy"><b>Need help now?</b><small>Send an SOS to responders</small></span><span class="floating-sos-arrow">↗</span></button>
     </main>
   </div>`;

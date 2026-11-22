@@ -1,7 +1,7 @@
 // Edit this file to change the public alerts page layout.
-window.RakhshakPages=window.RakhshakPages||{};window.RakhshakPages.public=function(ctx){const {state,esc,timestamp,ago,village,team,totalPeople,openSos,unresolved,pendingMessages,metric,statusClass,statusChip,eventRows,pageHead,mapSvg,getMapSelection,statuses,sosCard,messageChip,filteredReportEvents}=ctx;const published=state.alerts.filter(a=>a.status==='Published'),drafts=state.alerts.filter(a=>a.status==='Draft');return `${pageHead('PUBLIC INFORMATION','Safety updates','Public information is approved by an authorized operator before it appears here.',`<button class="button" data-page="dashboard">← &nbsp;Back to command center</button>
+window.RakshakPages=window.RakshakPages||{};window.RakshakPages.public=function(ctx){const {state,esc,timestamp,ago,village,team,totalPeople,openSos,unresolved,pendingMessages,metric,statusClass,statusChip,eventRows,pageHead,mapSvg,getMapSelection,statuses,sosCard,messageChip,filteredReportEvents}=ctx;const published=state.alerts.filter(a=>a.status==='Published'),drafts=state.alerts.filter(a=>a.status==='Draft');return `${pageHead('PUBLIC INFORMATION','Safety updates','Public information is approved by an authorized operator before it appears here.',`<button class="button" data-page="dashboard">← &nbsp;Back to command center</button>
       <button class="button primary" data-action="new-alert">＋ &nbsp;Draft public alert</button>`)}<section class="public-preview">
-      <div class="public-brand">RAKHSHAK · PUBLIC SAFETY</div>
+      <div class="public-brand">Rakshak · PUBLIC SAFETY</div>
       <h2>Community safety updates</h2>
       <p>Follow official instructions from responders. Routes are suggestions only and may change with conditions. If you need urgent help, use the SOS form or contact local emergency services.</p>
       </section>
