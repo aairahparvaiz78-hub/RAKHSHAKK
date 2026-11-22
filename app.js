@@ -111,7 +111,11 @@
       if (showToast) toast('Flood risk outlook refreshed from the latest saved readings.');
       return true;
     } catch (error) {
+<<<<<<< HEAD
       if (showToast) toast(error.message || 'Start the Rakshak backend to refresh forecasts.', true);
+=======
+      if (showToast) toast(error.message || 'Forecast service is unavailable. Check the connection and try again.', true);
+>>>>>>> c6fb400426897a8e758b31e8f6b9f88e8ec9a94a
       return false;
     }
   }
@@ -186,6 +190,7 @@
       pageMarkup='<section class="card empty-state render-error"><h2>This page did not load</h2><p>Refresh the page. If it remains blank, check that its page file is available.</p></section>';
     }
     content.innerHTML=pageMarkup;
+    window.RakhshakI18n?.apply(document.querySelector('.app-shell'));
     $('#content').focus({preventScroll:true});
     bindContent();
   }
@@ -256,7 +261,11 @@
         render();
         toast('Reading saved to the database and flood outlook updated.');
       }catch{
+<<<<<<< HEAD
         toast('Start the Rakshak backend before adding a reading.',true);
+=======
+        toast('Connect the API and database before saving a field reading.',true);
+>>>>>>> c6fb400426897a8e758b31e8f6b9f88e8ec9a94a
       }
     });
   }  function openSosDialog(){const dlg=$('#sosDialog');dlg.innerHTML=`<div class="dialog-head"><div><div class="eyebrow">CITIZEN SOS</div><h2>Request emergency help</h2><p>Your request is linked to the Kosi Basin incident.</p></div><button class="dialog-close" data-close aria-label="Close">×</button></div><form id="sosForm"><div class="form-grid"><div class="field"><label for="sosVillage">Village / location</label><select id="sosVillage" name="village" required>${state.villages.map(v=>`<option value="${v.id}">${esc(v.name)} · ${esc(v.access)}</option>`).join('')}</select></div><div class="field"><label for="sosNeed">Type of help</label><select id="sosNeed" name="need"><option>Evacuation</option><option>Medical help</option><option>Food & water</option><option>Rescue from water</option><option>Other urgent help</option></select></div><div class="field"><label for="sosPeople">People needing help</label><input id="sosPeople" name="people" type="number" min="1" max="99" value="1" required></div><div class="field"><label for="sosLocation">Location detail (optional)</label><input id="sosLocation" name="location" maxlength="80" placeholder="Landmark or last-known location"></div><label class="check-row"><input type="checkbox" name="medical"> Medical need</label><label class="check-row"><input type="checkbox" name="danger"> Immediate danger</label><div class="field full"><label for="sosNote">Short note (optional)</label><textarea id="sosNote" name="note" maxlength="180" placeholder="Tell responders what they should know"></textarea></div></div><div class="inline-note" style="margin-top:12px">Priority is suggested from need, people affected, village exposure and isolation. ${state.online?'Request will be sent through this simulated network.':'Request will be saved on this device and marked pending until synced.'}</div><div class="dialog-actions"><button type="button" class="button ghost" data-close>Cancel</button><button class="button primary" type="submit">Send SOS request</button></div></form>`;openDialog(dlg);$('#sosForm').addEventListener('submit',submitSos);}
@@ -282,6 +291,11 @@
   window.addEventListener('scroll',()=>{const button=$('#floatingSOS');if(button)button.classList.toggle('show',window.scrollY>340);},{passive:true});
   render();
   connectDatabase();
+<<<<<<< HEAD
   try{const flash=sessionStorage.getItem('RakshakFlash');if(flash){sessionStorage.removeItem('RakshakFlash');toast(flash);}}catch{}
   if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('./sw.js?v=9').catch(() => {});
+=======
+  try{const flash=sessionStorage.getItem('rakhshakFlash');if(flash){sessionStorage.removeItem('rakhshakFlash');toast(flash);}}catch{}
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('./sw.js?v=10').catch(() => {});
+>>>>>>> c6fb400426897a8e758b31e8f6b9f88e8ec9a94a
 })();

@@ -1,6 +1,13 @@
+<<<<<<< HEAD
 -- Run this in the Supabase SQL Editor to create Rakshak's cloud tables.
 -- The local Node.js backend uses a server-side secret key only. Do not put that
 -- key in browser JavaScript. Keep RLS enabled and do not add public write rules.
+=======
+-- Run this in the Supabase SQL Editor to create Rakhshak's cloud tables.
+-- The local Node.js backend and Vercel functions use a server-side secret key.
+-- Do not put that key in browser JavaScript. Keep RLS enabled and do not add
+-- public write rules.
+>>>>>>> c6fb400426897a8e758b31e8f6b9f88e8ec9a94a
 
 create table if not exists public.Rakshak_app_state (
   state_key text primary key,
@@ -43,5 +50,5 @@ alter table public.Rakshak_app_state enable row level security;
 alter table public.Rakshak_observations enable row level security;
 alter table public.Rakshak_forecasts enable row level security;
 
--- No anon policies are created. The localhost backend uses the server-side
--- Supabase secret key and serves only on 127.0.0.1 for this prototype.
+-- No anon policies are created. Both backends use the server-side Supabase
+-- secret key; the local server binds only to 127.0.0.1.

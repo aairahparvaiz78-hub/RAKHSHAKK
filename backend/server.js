@@ -7,10 +7,16 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { randomUUID } = require("node:crypto");
 const { DatabaseSync } = require("node:sqlite");
+const { buildOutlooks } = require("../lib/flood-outlook");
+const { normalizeBaseUrl } = require("../lib/supabase");
 
 const ROOT = path.resolve(__dirname, "..");
+<<<<<<< HEAD
 const DB_FILE = path.join(__dirname, "data", "Rakshak.sqlite3");
 const MODEL_VERSION = "transparent-flood-screen-v1";
+=======
+const DB_FILE = path.join(__dirname, "data", "rakhshak.sqlite3");
+>>>>>>> c6fb400426897a8e758b31e8f6b9f88e8ec9a94a
 const MAX_BODY_BYTES = 1_000_000;
 
 function loadEnv() {
@@ -89,7 +95,7 @@ class SupabaseStore {
   mode = "supabase";
 
   constructor(baseUrl, secretKey) {
-    this.baseUrl = baseUrl.replace(/\/+$/, "");
+    this.baseUrl = normalizeBaseUrl(baseUrl);
     this.secretKey = secretKey;
   }
 
@@ -165,79 +171,6 @@ function makeStore() {
   return url && secret ? new SupabaseStore(url, secret) : new SQLiteStore();
 }
 
-const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-function riskCategory(score) {
-  if (score >= 85) return "Severe";
-  if (score >= 65) return "High";
-  if (score >= 40) return "Elevated";
-  return "Monitor";
-}
-
-function demoObservation(village) {
-  const risk = Number(village.risk ?? 30);
-  return {
-    id: "demo-" + (village.id || "village"),
-    village_id: String(village.id || ""),
-    village_name: String(village.name || "Unknown village"),
-    observed_at: now(),
-    rainfall_6h_mm: Math.round((4 + risk * 0.36) * 10) / 10,
-    rainfall_24h_mm: Math.round((12 + risk * 0.82) * 10) / 10,
-    river_level_cm: Math.round((270 + risk * 2.2) * 10) / 10,
-    river_rise_cm_hr: Math.round((0.2 + risk * 0.028) * 100) / 100,
-    soil_saturation_pct: Math.round(clamp(35 + risk * 0.52, 0, 100) * 10) / 10,
-    source: "SIMULATED DEMO SCENARIO",
-    is_simulated: true
-  };
-}
-
-function observationValue(row, snake, camel) {
-  return Number(row[snake] ?? row[camel] ?? 0) || 0;
-}
-
-function computeForecast(village, observation, generatedAt) {
-  const base = clamp(Number(village.risk ?? 30), 0, 100);
-  const rain6 = observationValue(observation, "rainfall_6h_mm", "rainfall6hMm");
-  const rain24 = observationValue(observation, "rainfall_24h_mm", "rainfall24hMm");
-  const riverRise = observationValue(observation, "river_rise_cm_hr", "riverRiseCmHr");
-  const soil = observationValue(observation, "soil_saturation_pct", "soilSaturationPct");
-  const isolation = String(village.access || "").toLowerCase().includes("isolation") ? 8 : 0;
-  const rain6Signal = Math.min(25, rain6 * 0.48);
-  const rain24Signal = Math.min(24, rain24 * 0.18);
-  const riverSignal = Math.min(27, Math.max(0, riverRise) * 5.5);
-  const soilSignal = Math.min(10, soil * 0.1);
-  const baseline = base * 0.32;
-  const weights = { "6h": [1, 0.38, 0.85], "24h": [0.72, 1, 1.05], "72h": [0.4, 0.85, 1.18] };
-  const horizons = {};
-  for (const [label, weight] of Object.entries(weights)) {
-    const score = Math.round(clamp(
-      baseline + rain6Signal * weight[0] + rain24Signal * weight[1] +
-      riverSignal * weight[2] + soilSignal + isolation, 0, 100
-    ));
-    horizons[label] = { riskIndex: score, category: riskCategory(score) };
-  }
-  const simulated = Boolean(observation.is_simulated ?? observation.isSimulated);
-  const drivers = ["Village baseline risk: " + Math.round(base) + "/100"];
-  if (rain6 > 0 || rain24 > 0) drivers.push("Rainfall input: " + rain6 + " mm / 6h, " + rain24 + " mm / 24h");
-  if (riverRise !== 0) drivers.push("River trend input: " + riverRise + " cm/hour");
-  if (soil > 0) drivers.push("Soil saturation input: " + soil + "%");
-  if (isolation) drivers.push("Village access is marked at risk of isolation");
-  return {
-    id: "forecast-" + (village.id || "village"),
-    villageId: String(village.id || ""),
-    villageName: String(village.name || "Unknown village"),
-    access: String(village.access || "Access unverified"),
-    baselineRisk: Math.round(base),
-    observedAt: observation.observed_at || observation.observedAt || "",
-    source: String(observation.source || "Unknown source"),
-    isSimulated: simulated,
-    confidence: simulated ? "Low · simulated" : "Low · screening model",
-    drivers,
-    horizons,
-    generatedAt,
-    modelVersion: MODEL_VERSION
-  };
-}
-
 function sendJson(response, status, value) {
   const body = Buffer.from(JSON.stringify(value));
   response.writeHead(status, {
@@ -288,23 +221,8 @@ async function handleApi(request, response, store, url) {
       }
       const villages = snapshot.state.villages || [];
       if (!villages.length) return sendJson(response, 200, { forecasts: [], notice: "No villages are configured." });
-      const latest = new Map();
-      for (const row of await store.listObservations()) {
-        const id = String(row.village_id ?? row.villageId ?? "");
-        if (!latest.has(id)) latest.set(id, row);
-      }
-      for (const village of villages) {
-        const id = String(village.id || "");
-        if (!latest.has(id)) {
-          const sample = demoObservation(village);
-          await store.addObservation(sample);
-          latest.set(id, sample);
-        }
-      }
-      const generatedAt = now();
-      const forecasts = villages.map((village) =>
-        computeForecast(village, latest.get(String(village.id || "")), generatedAt)
-      ).sort((a, b) => b.horizons["24h"].riskIndex - a.horizons["24h"].riskIndex);
+      const result = await buildOutlooks(villages, await store.listObservations());
+      const forecasts = result.forecasts;
       await store.saveForecasts(forecasts.map((row) => ({
         id: row.id,
         village_id: row.villageId,
@@ -318,8 +236,9 @@ async function handleApi(request, response, store, url) {
       })));
       return sendJson(response, 200, {
         forecasts,
-        notice: "Risk index is a prototype screening estimate, not a probability or official warning.",
-        modelVersion: MODEL_VERSION
+        notice: result.notice,
+        modelVersion: result.modelVersion,
+        providerErrors: result.providerErrors
       });
     }
     if (request.method === "PUT" && url.pathname === "/api/state") {

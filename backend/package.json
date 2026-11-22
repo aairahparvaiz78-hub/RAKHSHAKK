@@ -1,16 +1,11 @@
 {
-    "name": "rakshakk-backend",
-    "version": "1.0.0",
-    "main": "server.js",
-    "scripts": {
-      "start": "node server.js"
-    },
-    "dependencies": {
-      "bcryptjs": "^2.4.3",
-      "better-sqlite3": "^11.8.1",
-      "cors": "^2.8.5",
-      "dotenv": "^16.4.7",
-      "express": "^4.21.2",
-      "jsonwebtoken": "^9.0.2"
-    }
+  "name": "rakhshak-backend",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "start": "node server.js"
+  }
 }
